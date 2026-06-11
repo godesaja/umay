@@ -39,7 +39,6 @@
             align-items: center;
         }
 
-        /* Container foto — layering */
         .scene {
             position: relative;
             width: 100%;
@@ -49,7 +48,6 @@
             align-items: center;
         }
 
-        /* Foto 2 — di belakang, z-index 1 */
         #photo2 {
             position: absolute;
             z-index: 1;
@@ -59,7 +57,6 @@
             max-height: 100%;
             aspect-ratio: 3 / 4;
             object-fit: contain;
-            /* === WARNA PINK === */
             border: 4px solid #FF69B4;
             box-shadow: 
                 0 0 10px #FF69B4,
@@ -85,7 +82,6 @@
             transform: scale(1.02);
         }
 
-        /* Foto 1 — di depan, z-index 2 */
         #photo1Container {
             position: absolute;
             z-index: 2;
@@ -93,7 +89,7 @@
             height: auto;
             max-width: 100%;
             max-height: 100%;
-            aspect-fit: contain;
+            object-fit: contain;
             aspect-ratio: 3 / 4;
         }
 
@@ -111,7 +107,6 @@
             display: block;
         }
 
-        /* Speech Bubble — absolute terhadap scene, posisi diatur via JS berdasarkan foto2 */
         .speech-bubble {
             position: absolute;
             top: 0;
@@ -146,7 +141,6 @@
             color: #333;
         }
 
-        /* Animasi bounce pada bubble */
         @keyframes bubbleBounce {
             0% { transform: translateX(-50%) scale(1, 1); }
             30% { transform: translateX(-50%) scale(0.85, 0.55); }
@@ -159,7 +153,6 @@
             animation: bubbleBounce 0.5s ease-in-out;
         }
 
-        /* Hint */
         .hint {
             position: absolute;
             bottom: 20px;
@@ -177,7 +170,6 @@
             min-height: 75px;
         }
     </style>
-<base target="_blank">
 </head>
 <body>
 
@@ -196,6 +188,9 @@
     <div class="hint">Ketuk layar</div>
 </div>
 
+<audio id="bgMusic" src="./music.mp3" loop preload="auto"></audio>
+<audio id="tapSound" src="./sound.mp3" preload="auto"></audio>
+
 <script>
     document.addEventListener('touchmove', function(e) { e.preventDefault(); }, { passive: false });
     document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
@@ -212,6 +207,23 @@
     const speechBubble = document.getElementById('speechBubble');
     const bubbleText = document.getElementById('bubbleText');
     const tapArea = document.getElementById('tapArea');
+
+    const bgMusic = document.getElementById('bgMusic');
+    const tapSound = document.getElementById('tapSound');
+
+    let audioStarted = false;
+
+    function startAudio() {
+        if (audioStarted) return;
+        audioStarted = true;
+        bgMusic.volume = 0.5;
+        bgMusic.play().catch(() => {});
+    }
+
+    function playTapSound() {
+        tapSound.currentTime = 0;
+        tapSound.play().catch(() => {});
+    }
 
     photo1.onerror = function() {
         this.classList.add('img-error');
@@ -244,7 +256,7 @@
     function updateBubblePosition() {
         const photo2Rect = photo2.getBoundingClientRect();
         const sceneRect = document.querySelector('.scene').getBoundingClientRect();
-        const topPos = photo2Rect.top - sceneRect.top - -30;
+        const topPos = photo2Rect.top - sceneRect.top - 30;
         let leftPos;
         if (textIndex % 2 === 0) {
             leftPos = photo2Rect.left - sceneRect.left + (photo2Rect.width * 0.7);
@@ -262,6 +274,10 @@
 
     function handleTap(e) {
         e.preventDefault();
+
+        startAudio();
+        playTapSound();
+
         isPhoto1A = !isPhoto1A;
         animatePhoto(photo1);
         setTimeout(() => {
