@@ -192,6 +192,7 @@
 <audio id="tapSound" src="./sound.mp3" preload="auto"></audio>
 
 <script>
+    // Prevent scrolling and zooming immediately
     document.addEventListener('touchmove', function(e) { e.preventDefault(); }, { passive: false });
     document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
     document.addEventListener('gesturechange', function(e) { e.preventDefault(); });
@@ -213,18 +214,35 @@
 
     let audioStarted = false;
 
+    // Function to start background music
     function startAudio() {
         if (audioStarted) return;
         audioStarted = true;
+
+        // Set volume and attempt to play
         bgMusic.volume = 0.5;
-        bgMusic.play().catch(() => {});
+        
+        // Try to play and catch any errors
+        const playPromise = bgMusic.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.catch(function(error) {
+                console.log('Audio play failed:', error);
+                // If autoplay is blocked, we need user interaction
+                audioStarted = false;
+            });
+        }
     }
 
+    // Function to play tap sound
     function playTapSound() {
         tapSound.currentTime = 0;
-        tapSound.play().catch(() => {});
+        tapSound.play().catch(function() {
+            // Silently fail if audio not ready
+        });
     }
 
+    // Error handling for images
     photo1.onerror = function() {
         this.classList.add('img-error');
         this.alt = 'foto_1a.png tidak ditemukan';
@@ -234,6 +252,7 @@
         this.alt = 'foto_2.png tidak ditemukan';
     };
 
+    // Photo bounce animation
     function animatePhoto(el) {
         el.style.animation = 'none';
         el.offsetHeight;
@@ -253,6 +272,7 @@
     `;
     document.head.appendChild(photoStyle);
 
+    // Update speech bubble position
     function updateBubblePosition() {
         const photo2Rect = photo2.getBoundingClientRect();
         const sceneRect = document.querySelector('.scene').getBoundingClientRect();
@@ -272,20 +292,30 @@
     window.addEventListener('DOMContentLoaded', updateBubblePosition);
     window.addEventListener('load', updateBubblePosition);
 
+    // Main tap handler
     function handleTap(e) {
         e.preventDefault();
+        e.stopPropagation();
 
+        // Start audio on first tap
         startAudio();
+        
+        // Play tap sound
         playTapSound();
 
+        // Switch photo
         isPhoto1A = !isPhoto1A;
         animatePhoto(photo1);
         setTimeout(() => {
             photo1.src = isPhoto1A ? './foto_1a.png' : './foto_1b.png';
         }, 150);
+        
+        // Update text
         textIndex = (textIndex + 1) % texts.length;
         updateBubblePosition();
         bubbleText.textContent = texts[textIndex];
+        
+        // Animate bubble
         speechBubble.classList.remove('animating');
         void speechBubble.offsetWidth;
         speechBubble.classList.add('animating');
@@ -294,8 +324,21 @@
         }, 500);
     }
 
+    // Attach event listeners directly to document body for maximum compatibility
+    document.body.addEventListener('click', handleTap);
+    document.body.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        handleTap(e);
+    }, { passive: false });
+
+    // Also keep tapArea listeners as fallback
     tapArea.addEventListener('click', handleTap);
-    tapArea.addEventListener('touchstart', function(e) { e.preventDefault(); handleTap(e); }, { passive: false });
+    tapArea.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        handleTap(e);
+    }, { passive: false });
+
+    // Initial bubble position
     setTimeout(updateBubblePosition, 100);
 </script>
 
