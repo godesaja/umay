@@ -276,7 +276,7 @@
     function updateBubblePosition() {
         const photo2Rect = photo2.getBoundingClientRect();
         const sceneRect = document.querySelector('.scene').getBoundingClientRect();
-        const topPos = photo2Rect.top - sceneRect.top - 30;
+        const topPos = photo2Rect.top - sceneRect.top - -30;
         let leftPos;
         if (textIndex % 2 === 0) {
             leftPos = photo2Rect.left - sceneRect.left + (photo2Rect.width * 0.7);
